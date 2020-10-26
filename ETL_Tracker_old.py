@@ -4,9 +4,9 @@ import pandas as pd
 import glob
 import re
 
-def searchword(e,d):
-    e = re.sub('[^a-zA-Z0-9]','',e)  
-    d = re.sub('[^a-zA-Z0-9]','',str(d))  
+def searchword(str(e).lower(),str(d).lower()):
+    e = re.sub('[^a-zA-Z0-9]',' ',e)  
+    d = re.sub('[^a-zA-Z0-9]',' ',str(d))  
     s = e.split(" ") 
     if re.search(str(d), e.lower()):
         return True
@@ -15,9 +15,9 @@ def searchword(e,d):
             if (i.strip() == str(d).strip()) or (str(d).strip() in i.strip()):
                 return True
         return False
-def searchword1(e,d):
-     e = re.sub('[^a-zA-Z0-9]','',e)  
-     d = re.sub('[^a-zA-Z0-9]','',str(d)) 
+def searchword1(str(e).lower(),str(d).lower()):
+     e = re.sub('[^a-zA-Z0-9]',' ',e)  
+     d = re.sub('[^a-zA-Z0-9]',' ',str(d)) 
      d1=d+'$'
      s = e.split(" ")
      if re.search(d1, e.lower()):
@@ -57,12 +57,13 @@ df['#issue']=None
 df['#done']=None
 df['There']=None
 
-df['UID']=df.apply(lambda x : re.sub('[^0-9a-zA-Z]','',str(x['UID'])),axis=1)
+df['UID']=df.apply(lambda x : re.sub('[^0-9]','',str(x['UID'])),axis=1)
 for d in df['UID']:
     print(d)
     for e in email_subject:
         s=searchword(e,d) 
 #        print(str(d)+":"+str(e)+":"+str(s)+":"+str(start)+":"+str(issue)+":"+str(done))
+        
         df.loc[df['UID']==d,'There']=s          
         if s is True:
             done=searchword1(e.lower(),'#done')#re.search('#done$', e.lower())
@@ -71,6 +72,7 @@ for d in df['UID']:
             df.loc[df['UID']==d,'#start']=start
             df.loc[df['UID']==d,'#issue']=issue
             df.loc[df['UID']==d,'#done']=done
+            
 
 df['Tag Status']=df.apply(lambda x :  '#done' if (x['#done'] is True) else('#issue' if x['#issue'] else('#start' if x['#start'] else ('Received' if x['There'] else 'Yet to receive'))) ,axis=1)
 #df=df.iloc[:,1:]

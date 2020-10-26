@@ -1,12 +1,50 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Sep 16 13:11:13 2020
+
+@author: deesaw
+"""
+
 import win32com.client 
 import datetime as dt
 import pandas as pd
 import glob
 import re
 
+s = 'radkar'
+def solution(s):
+    for i in range(len(s)):
+        t = s[:i] + s[i+1:]
+        if t == t[::-1]: return True
+
+    return s == s[::-1]
+  
+solution(s)
+
+def solution(x):
+    string = str(x)
+    
+    if string[0] == '-':
+        return int('-'+string[:0:-1])
+    else:
+        return int(string[::-1])
+    
+print(solution(-231))
+print(solution(345))
+
+def solution(s):
+    # build hash map : character and how often it appears
+    count = collections.Counter(s) # <-- gives back a dictionary with words occurrence count 
+                                         #Counter({'l': 1, 'e': 3, 't': 1, 'c': 1, 'o': 1, 'd': 1})
+    # find the index
+    for idx, ch in enumerate(s):
+        if count[ch] == 1:
+            return idx     
+    return -1
+
 def searchword(e,d):
-    e = re.sub('[^a-zA-Z0-9]','',e)  
-    d = re.sub('[^a-zA-Z0-9]','',str(d))  
+    e = re.sub('[^a-zA-Z0-9]',' ',e)  
+    d = re.sub('[^a-zA-Z0-9]',' ',str(d))  
     s = e.split(" ") 
     if re.search(str(d), e.lower()):
         return True
@@ -16,8 +54,8 @@ def searchword(e,d):
                 return True
         return False
 def searchword1(e,d):
-     e = re.sub('[^a-zA-Z0-9]','',e)  
-     d = re.sub('[^a-zA-Z0-9]','',str(d)) 
+     e = re.sub('[^a-zA-Z0-9]',' ',e)  
+     d = re.sub('[^a-zA-Z0-9]',' ',str(d)) 
      d1=d+'$'
      s = e.split(" ")
      if re.search(d1, e.lower()):
@@ -50,33 +88,18 @@ for x in messages:
     sub = x.Subject
     PCOOO='Task UID'
     if PCOOO in sub:
+        if '92785' in sub:
+            print(sub)
+            print(searchword1(sub,'92785'))
+            print(searchword1(sub,'#done'))
+            print(searchword1(sub,'#start'))
+            print(searchword1(sub,'#issue'))
         email_subject.append(sub)
         
-df['#start']=None
-df['#issue']=None
-df['#done']=None
-df['There']=None
 
-df['UID']=df.apply(lambda x : re.sub('[^0-9a-zA-Z]','',str(x['UID'])),axis=1)
-for d in df['UID']:
-    print(d)
-    for e in email_subject:
-        s=searchword(e,d) 
-#        print(str(d)+":"+str(e)+":"+str(s)+":"+str(start)+":"+str(issue)+":"+str(done))
-        df.loc[df['UID']==d,'There']=s          
-        if s is True:
-            done=searchword1(e.lower(),'#done')#re.search('#done$', e.lower())
-            issue=searchword1(e.lower(),'#issue')
-            start=searchword1(e.lower(),'#start')
-            df.loc[df['UID']==d,'#start']=start
-            df.loc[df['UID']==d,'#issue']=issue
-            df.loc[df['UID']==d,'#done']=done
 
-df['Tag Status']=df.apply(lambda x :  '#done' if (x['#done'] is True) else('#issue' if x['#issue'] else('#start' if x['#start'] else ('Received' if x['There'] else 'Yet to receive'))) ,axis=1)
-#df=df.iloc[:,1:]
-#df=df.iloc[:,1:]
 
-df.to_excel(file, sheet_name='ETL_Tracker', engine='xlsxwriter',index=False)
+
 
 
 
