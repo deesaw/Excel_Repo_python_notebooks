@@ -32,6 +32,16 @@ myFiles = glob.glob('*.xlsx')
 for file in myFiles:
     print(file)
     df=pd.read_excel(file,header=0,dtype=object)
+    xls = pd.ExcelFile(file)
+    a=xls.sheet_names
+    sheet_to_df_map = {}
+    l=[]
+    for sheet_name in a:
+        sheet_to_df_map[sheet_name] = xls.parse(sheet_name,dtype=object)
+        l.append(sheet_name)
+        
+    first_sheet=l[0]
+    print(first_sheet)
 day=int(input("Number of days to be considered:"))
 y = (dt.date.today() - dt.timedelta(days=day))
 print(y)
@@ -60,23 +70,40 @@ df['There']=None
 df['UID']=df.apply(lambda x : re.sub('[^0-9a-zA-Z]','',str(x['UID'])),axis=1)
 for d in df['UID']:
     print(d)
-    for e in email_subject:
-        s=searchword(e,d) 
-#        print(str(d)+":"+str(e)+":"+str(s)+":"+str(start)+":"+str(issue)+":"+str(done))
-        df.loc[df['UID']==d,'There']=s          
-        if s is True:
-            done=searchword1(e.lower(),'#done')#re.search('#done$', e.lower())
-            issue=searchword1(e.lower(),'#issue')
-            start=searchword1(e.lower(),'#start')
-            df.loc[df['UID']==d,'#start']=start
-            df.loc[df['UID']==d,'#issue']=issue
-            df.loc[df['UID']==d,'#done']=done
+    if df.loc[df['UID']==d,'#done'].values[0] is True:
+        print('*****************')
+        print('*****************')
+        continue;
+    else:
+        for e in email_subject:
+            s=searchword(e,d) 
+            df.loc[df['UID']==d,'There']=s  
+            if s is True and '#' in e:#and (df.loc[df['UID']==d,'#done'] is False or df.loc[df['UID']==d,'#done'] is None):
+                done=searchword1(e.lower(),'#done')
+                #print('done',done)
+                issue=searchword1(e.lower(),'#issue')
+                start=searchword1(e.lower(),'#start')
+                df.loc[df['UID']==d,'#start']=start
+                df.loc[df['UID']==d,'#issue']=issue
+                df.loc[df['UID']==d,'#done']=done
+                if df.loc[df['UID']==d,'#done'].values[0] is True:
+                    break;
+
 
 df['Tag Status']=df.apply(lambda x :  '#done' if (x['#done'] is True) else('#issue' if x['#issue'] else('#start' if x['#start'] else ('Received' if x['There'] else 'Yet to receive'))) ,axis=1)
 #df=df.iloc[:,1:]
 #df=df.iloc[:,1:]
 
-df.to_excel(file, sheet_name='ETL_Tracker', engine='xlsxwriter',index=False)
+#df.to_excel(file, sheet_name='ETL_Tracker', engine='xlsxwriter',index=False)
+import os
+path=os.path.join(os.getcwd(),file)
+writer = pd.ExcelWriter( path,engine='xlsxwriter')
+sheet_to_df_map[first_sheet]=df
+for s,j in sheet_to_df_map.items():
+    j.to_excel(writer,sheet_name=s,index=False)
+
+writer.save()
+
 
 
 
